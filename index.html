@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ContextTrace — Decision Inbox</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Gate. Nothing below renders until a session exists AND a profile row is
+     found; being signed in is not the same as being authorized. -->
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <p class="eyebrow">ContextTrace</p>
+    <h1>Decision Inbox</h1>
+    <p class="gate-sub">Human judgment about distributed-information research.
+       Access is invite-only — a sign-in without an authorized profile is refused.</p>
+
+    <form id="login-form" autocomplete="on">
+      <label for="email">Work email</label>
+      <input id="email" name="email" type="email" required
+             placeholder="you@example.com" autocomplete="email">
+      <button id="login-btn" type="submit">Email me a sign-in link</button>
+    </form>
+
+    <p id="gate-msg" class="gate-msg" hidden></p>
+  </div>
+</div>
+
+<!-- Application -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="brand">ContextTrace</span>
+      <nav class="tabs" role="tablist">
+        <button class="tab is-active" data-view="inbox" role="tab">Inbox</button>
+        <button class="tab" data-view="reverify" role="tab">Re-verification</button>
+        <button class="tab" data-view="history" role="tab">History</button>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <span id="whoami" class="whoami"></span>
+      <button id="logout" class="ghost">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ---------------- inbox ---------------- -->
+    <section id="view-inbox" class="view">
+      <div class="summary" id="summary"></div>
+
+      <div class="next-up" id="next-up">
+        <h2>Next 3 actions</h2>
+        <ol id="next-list"></ol>
+      </div>
+
+      <div id="groups"></div>
+    </section>
+
+    <!-- ---------------- re-verification ---------------- -->
+    <section id="view-reverify" class="view" hidden>
+      <h2>Awaiting acceptance</h2>
+      <p class="view-note">A decision you approved is not accepted until you
+        confirm the implementation actually matches it. These are the open gaps
+        between direction and acceptance.</p>
+      <div id="reverify-list"></div>
+    </section>
+
+    <!-- ---------------- history ---------------- -->
+    <section id="view-history" class="view" hidden>
+      <h2>Resolved</h2>
+      <p class="view-note">Append-only. A card is superseded, never erased.</p>
+      <div id="history-list"></div>
+    </section>
+  </main>
+
+  <!-- Decision detail, as a sheet on phones and a panel on desktop -->
+  <div id="sheet" class="sheet" hidden>
+    <div class="sheet-scrim" data-close></div>
+    <div class="sheet-body" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <button class="sheet-close" data-close aria-label="Close">&times;</button>
+      <div id="sheet-content"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <div class="shortcuts" id="shortcuts">
+    <span><kbd>A</kbd> approve</span>
+    <span><kbd>R</kbd> revise</span>
+    <span><kbd>X</kbd> reject</span>
+    <span><kbd>F</kbd> framing wrong</span>
+    <span><kbd>N</kbd> next</span>
+    <span><kbd>Esc</kbd> close</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
