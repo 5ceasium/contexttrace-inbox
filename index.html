@@ -24,8 +24,13 @@
              placeholder="you@example.com" autocomplete="email">
 
       <label for="code" class="spaced">Team access code</label>
-      <input id="code" name="code" type="password" required
-             placeholder="three-words-0000" autocomplete="current-password">
+      <!-- autocomplete="off" and a non-password name on purpose: this is a
+           shared team code, not a per-person password, and a manager autofilling
+           a saved credential over it produces a login failure the user cannot
+           explain. spellcheck/capitalize off because it is pasted. -->
+      <input id="code" name="ct-access-code" type="password" required
+             placeholder="three-words-0000" autocomplete="off"
+             autocapitalize="off" spellcheck="false">
 
       <button id="login-btn" type="submit">Sign in</button>
       <button id="magic-btn" type="button" class="link-btn">

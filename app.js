@@ -546,8 +546,13 @@
   // email identifies the person, which is what the audit trail records.
   $("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = $("email").value.trim();
-    const code = $("code").value;
+    // Both inputs are normalised. The code is almost always pasted, and a
+    // pasted value routinely carries a trailing newline or space -- the first
+    // real sign-in attempt failed for exactly that reason. Whitespace is never
+    // meaningful in either field, so stripping it removes a whole class of
+    // "the code doesn't work" that looks like an auth problem and isn't.
+    const email = $("email").value.trim().toLowerCase();
+    const code = $("code").value.trim();
     const btn = $("login-btn");
     btn.disabled = true;
     btn.textContent = "Signing in…";
@@ -555,12 +560,15 @@
     btn.disabled = false;
     btn.textContent = "Sign in";
     if (error) {
-      // Deliberately does not distinguish "wrong code" from "unknown email":
-      // telling an anonymous visitor which addresses are authorized is a free
-      // list of who to impersonate.
+      // Still does not distinguish "wrong code" from "unknown email": telling
+      // an anonymous visitor which addresses are authorized is a free list of
+      // who to impersonate. But it now names the two mundane causes, because
+      // the generic message sent a real user hunting a nonexistent auth bug.
       return showGate(
-        "That email and code combination was not accepted. Check the code, or " +
-        "ask the project owner whether your address has been authorized.",
+        "That email and code combination was not accepted. The code is " +
+        "case-sensitive and includes the digits. If you pasted it, check your " +
+        "browser did not autofill a saved password over it. Otherwise ask the " +
+        "project owner whether your address is authorized.",
         true
       );
     }
@@ -572,7 +580,7 @@
   // the mailer's hourly quota, so it is the secondary path rather than the
   // primary one.
   $("magic-btn").addEventListener("click", async () => {
-    const email = $("email").value.trim();
+    const email = $("email").value.trim().toLowerCase();
     if (!email) {
       return showGate("Enter your email first, then request a link.", true);
     }
