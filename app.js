@@ -533,10 +533,50 @@
     }
   });
 
+  // Primary path: email + a shared team code, which signs in immediately.
+  //
+  // Why a code rather than open auto-sign-in: this page is on a public URL, and
+  // resolving a decision writes to an append-only audit log that cannot be
+  // edited or deleted afterwards, even by the owner. Without a gate, a stranger
+  // who guessed a cofounder's address could enter a judgment that is then
+  // permanently indistinguishable from a real one in the research record. The
+  // code costs one entry per device and removes that.
+  //
+  // It is deliberately NOT a per-person secret. It identifies the team; the
+  // email identifies the person, which is what the audit trail records.
   $("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = $("email").value.trim();
+    const code = $("code").value;
     const btn = $("login-btn");
+    btn.disabled = true;
+    btn.textContent = "Signing in…";
+    const { error } = await sb.auth.signInWithPassword({ email, password: code });
+    btn.disabled = false;
+    btn.textContent = "Sign in";
+    if (error) {
+      // Deliberately does not distinguish "wrong code" from "unknown email":
+      // telling an anonymous visitor which addresses are authorized is a free
+      // list of who to impersonate.
+      return showGate(
+        "That email and code combination was not accepted. Check the code, or " +
+        "ask the project owner whether your address has been authorized.",
+        true
+      );
+    }
+    // onAuthStateChange takes it from here and runs the profile gate.
+  });
+
+  // Fallback: magic link. Kept because the code can be rotated or forgotten,
+  // but it depends on the project's redirect allowlist being configured and on
+  // the mailer's hourly quota, so it is the secondary path rather than the
+  // primary one.
+  $("magic-btn").addEventListener("click", async () => {
+    const email = $("email").value.trim();
+    if (!email) {
+      return showGate("Enter your email first, then request a link.", true);
+    }
+    const btn = $("magic-btn");
     btn.disabled = true;
     btn.textContent = "Sending…";
     const { error } = await sb.auth.signInWithOtp({
@@ -544,11 +584,18 @@
       options: { emailRedirectTo: window.location.href.split("#")[0] },
     });
     btn.disabled = false;
-    btn.textContent = "Email me a sign-in link";
-    if (error) return showGate(error.message, true);
+    btn.textContent = "Forgot the code? Email me a link instead";
+    if (error) {
+      return showGate(
+        error.message.toLowerCase().includes("rate")
+          ? "The project's hourly email quota is used up. Use the team access code instead."
+          : error.message,
+        true
+      );
+    }
     showGate(
-      `Check ${email} for a sign-in link. It only works if that address has ` +
-      `been authorized for this project.`
+      `If ${email} is authorized, a sign-in link is on its way. The link only ` +
+      `works for an authorized address.`
     );
   });
 
